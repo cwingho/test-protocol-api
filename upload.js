@@ -1,0 +1,153 @@
+$(document).ready(function() {
+    const dropZone = $('#dropZone');
+    const fileInput = $('#fileInput');
+    const browseBtn = $('#browseBtn');
+    const uploadBtn = $('#uploadBtn');
+    const fileInfo = $('#fileInfo');
+    const fileName = $('#fileName');
+    const removeFile = $('#removeFile');
+    const uploadProgress = $('#uploadProgress');
+    const progressBar = $('.progress-bar');
+    
+    let selectedFile = null;
+
+    // Handle drag and drop events
+    dropZone.on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('active');
+    });
+
+    dropZone.on('dragleave', function(e) {
+        e.preventDefault();
+        $(this).removeClass('active');
+    });
+
+    dropZone.on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('active');
+        
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length > 1) {
+            showAlert('Please drop only one Python file at a time', 'danger');
+            return;
+        }
+        
+        handleFile(files[0]);
+    });
+
+    // Handle browse button click
+    browseBtn.click(() => fileInput.click());
+
+    // Handle file selection
+    fileInput.change(function() {
+        const file = this.files[0];
+        handleFile(file);
+    });
+
+    // Handle file removal
+    removeFile.click(function() {
+        clearFile();
+    });
+
+    // Handle file upload
+    uploadBtn.click(function() {
+        if (!selectedFile) return;
+        
+        uploadFile(selectedFile);
+    });
+
+    function handleFile(file) {
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.name.toLowerCase().endsWith('.py')) {
+            showAlert('Please select a Python script file (.py)', 'danger');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('File size should not exceed 5MB', 'danger');
+            return;
+        }
+
+        // Check if multiple files were dropped
+        if (fileInput[0].files.length > 1) {
+            showAlert('Please upload only one Python file at a time', 'danger');
+            clearFile();
+            return;
+        }
+
+        selectedFile = file;
+        fileName.text(file.name);
+        fileInfo.show();
+        uploadBtn.prop('disabled', false);
+    }
+
+    function clearFile() {
+        selectedFile = null;
+        fileInput.val('');
+        fileInfo.hide();
+        uploadBtn.prop('disabled', true);
+        uploadProgress.hide();
+        progressBar.css('width', '0%');
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('script', file);
+
+        uploadBtn.prop('disabled', true);
+        uploadProgress.show();
+        $('#responseArea').val(''); // Clear previous response
+
+        $.ajax({
+            url: '/api/upload-script',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                const xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressBar.css('width', percent + '%');
+                    }
+                });
+                return xhr;
+            },
+            success: function(response) {
+                showAlert('Script uploaded successfully!', 'success');
+                // Pretty print the JSON response
+                const formattedResponse = JSON.stringify(response, null, 2);
+                $('#responseArea').val(formattedResponse);
+                clearFile();
+            },
+            error: function(xhr, status, error) {
+                showAlert('Error uploading script: ' + (xhr.responseJSON?.message || error), 'danger');
+                // Display error response if available
+                if (xhr.responseJSON) {
+                    const formattedError = JSON.stringify(xhr.responseJSON, null, 2);
+                    $('#responseArea').val(formattedError);
+                }
+                uploadBtn.prop('disabled', false);
+                uploadProgress.hide();
+            }
+        });
+    }
+
+    function showAlert(message, type) {
+        const alertBox = $('#alertBox');
+        const alertMessage = $('#alertMessage');
+        
+        alertBox.removeClass('alert-success alert-danger')
+               .addClass('alert-' + type + ' show');
+        alertMessage.text(message);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            alertBox.removeClass('show');
+        }, 5000);
+    }
+}); 
