@@ -97,12 +97,18 @@ $(document).ready(function() {
         const formData = new FormData();
         formData.append('script', file);
 
+        const serverUrl = $('#serverUrl').val().trim();
+        if (!serverUrl) {
+            showAlert('Please enter a server URL/IP address', 'danger');
+            return;
+        }
+
         uploadBtn.prop('disabled', true);
         uploadProgress.show();
-        $('#responseArea').val(''); // Clear previous response
+        $('#responseArea').val('');
 
         $.ajax({
-            url: '/api/upload-script',
+            url: serverUrl + '/api/upload-script',
             method: 'POST',
             data: formData,
             processData: false,
@@ -119,14 +125,12 @@ $(document).ready(function() {
             },
             success: function(response) {
                 showAlert('Script uploaded successfully!', 'success');
-                // Pretty print the JSON response
                 const formattedResponse = JSON.stringify(response, null, 2);
                 $('#responseArea').val(formattedResponse);
                 clearFile();
             },
             error: function(xhr, status, error) {
                 showAlert('Error uploading script: ' + (xhr.responseJSON?.message || error), 'danger');
-                // Display error response if available
                 if (xhr.responseJSON) {
                     const formattedError = JSON.stringify(xhr.responseJSON, null, 2);
                     $('#responseArea').val(formattedError);
