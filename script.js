@@ -94,47 +94,44 @@ $(document).ready(function() {
     }
 
     function uploadFile(file) {
-        const formData = new FormData();
-        formData.append('script', file);
-
         const serverUrl = $('#serverUrl').val().trim();
         if (!serverUrl) {
             showAlert('Please enter a server URL/IP address', 'danger');
             return;
         }
 
+        const formData = new FormData();
+        formData.append('files', file);
+        formData.append('target_url', serverUrl);
+
         uploadBtn.prop('disabled', true);
         uploadProgress.show();
         $('#responseArea').val('');
 
         $.ajax({
-            url: serverUrl + '/api/upload-script',
+            url: '/protocols',
             method: 'POST',
             data: formData,
             processData: false,
             contentType: false,
-            xhr: function() {
+            xhr: () => {
                 const xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(e) {
+                xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressBar.css('width', percent + '%');
+                        progressBar.css('width', Math.round((e.loaded / e.total) * 100) + '%');
                     }
-                });
+                };
                 return xhr;
             },
-            success: function(response) {
+            success: (response) => {
                 showAlert('Script uploaded successfully!', 'success');
-                const formattedResponse = JSON.stringify(response, null, 2);
-                $('#responseArea').val(formattedResponse);
+                $('#responseArea').val(JSON.stringify(response, null, 2));
                 clearFile();
             },
-            error: function(xhr, status, error) {
-                showAlert('Error uploading script: ' + (xhr.responseJSON?.message || error), 'danger');
-                if (xhr.responseJSON) {
-                    const formattedError = JSON.stringify(xhr.responseJSON, null, 2);
-                    $('#responseArea').val(formattedError);
-                }
+            error: (xhr, status, error) => {
+                const errorMsg = xhr.responseJSON?.message || error;
+                showAlert('Error uploading script: ' + errorMsg, 'danger');
+                $('#responseArea').val(xhr.responseJSON ? JSON.stringify(xhr.responseJSON, null, 2) : '');
                 uploadBtn.prop('disabled', false);
                 uploadProgress.hide();
             }
