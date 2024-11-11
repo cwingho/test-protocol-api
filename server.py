@@ -1,10 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import List
-import os
 import aiohttp
-import asyncio
-from datetime import datetime
+import os
 
 app = FastAPI()
 
@@ -13,9 +13,16 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["POST", "OPTIONS"],
+    allow_methods=["POST", "OPTIONS", "GET"],
     allow_headers=["*"],
 )
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="."), name="static")
+
+@app.get("/")
+async def read_root():
+    return FileResponse('index.html')
 
 @app.post("/protocols")
 async def upload_protocols(
@@ -50,7 +57,3 @@ async def upload_protocols(
     finally:
         for file in files:
             await file.close()
-
-@app.get("/")
-async def read_root():
-    return {"status": "running", "service": "Protocol Upload Server"}
