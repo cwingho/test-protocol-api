@@ -2,9 +2,13 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from typing import List
+from typing import Dict, Any
 import aiohttp
-import os
+
+# Constants
+RUNS_SERVICE_URL = "http://172.20.17.50:41950/runs"
+ALLOWED_FILE_EXTENSION = ".py"
+PYTHON_MIME_TYPE = "application/x-python"
 
 app = FastAPI()
 
@@ -21,39 +25,102 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-async def read_root():
+async def read_root() -> FileResponse:
+    """Serve the index.html file."""
     return FileResponse('index.html')
 
+async def validate_python_file(file: UploadFile) -> None:
+    """Validate if the uploaded file is a Python file."""
+    if not file.filename.lower().endswith(ALLOWED_FILE_EXTENSION):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File {file.filename} is not a Python file"
+        )
+
+async def create_protocol(
+    session: aiohttp.ClientSession, 
+    url: str, 
+    content: bytes, 
+    filename: str
+) -> Dict[str, Any]:
+    """Create a protocol by sending the file to the target service."""
+    data = aiohttp.FormData()
+    data.add_field('files', content, filename=filename, content_type=PYTHON_MIME_TYPE)
+    
+    async with session.post(f"{url}/protocols", data=data) as response:
+        response.raise_for_status()
+        result = await response.json()
+        return result["data"]["id"]
+
+async def create_run(
+    session: aiohttp.ClientSession,
+    target_url: str,
+    protocol_id: str
+) -> Dict[str, Any]:
+    """Create a run for the given protocol ID."""
+    async with session.post(
+        f"{target_url}/runs",
+        json={"data": {"protocolId": protocol_id}}
+    ) as response:
+        response.raise_for_status()
+        result = await response.json()
+        return result["data"]["id"]
+
+async def start_run(
+    session: aiohttp.ClientSession,
+    target_url: str,
+    run_id: str
+) -> Dict[str, Any]:
+    """Start the run."""
+    async with session.post(
+        f"{target_url}/runs/{run_id}/actions",
+        json={"data": {"actionType": "play"}}
+    ) as response:
+        response.raise_for_status()
+        result = await response.json()
+        return result["message"]
+
 @app.post("/protocols")
-async def upload_protocols(
-    files: List[UploadFile] = File(...),
+async def upload_protocol(
+    files: UploadFile = File(...),
     target_url: str = Form(...)
-):
+) -> Dict[str, Any]:
+    """
+    Handle protocol upload and run creation.
+    
+    Args:
+        files: The uploaded Python protocol file
+        target_url: The target service URL
+    
+    Returns:
+        Dict containing the protocol ID and run information
+    """
     try:
-        results = []
+        await validate_python_file(files)
+        content = await files.read()
+        
         async with aiohttp.ClientSession() as session:
-            for file in files:
-                if not file.filename.lower().endswith('.py'):
-                    raise HTTPException(status_code=400, detail=f"File {file.filename} is not a Python file")
-                
-                content = await file.read()
-                data = aiohttp.FormData()
-                data.add_field('files', content, filename=file.filename, content_type='application/x-python')
+            # Create protocol
+            protocol_id = await create_protocol(session, target_url, content, files.filename)
+            
+            # Create run using the same target_url
+            run_id = await create_run(session, target_url, protocol_id)
 
-                forward_url = f"{target_url}/protocols"
-                async with session.post(forward_url, data=data) as response:
-                    results.append({
-                        "file": file.filename,
-                        "status": response.status,
-                        "response": await response.json()
-                    })
+            # Start run
+            action_result = await start_run(session, target_url, run_id)
+            
+            return {
+                "message": "File forwarded successfully",
+                "protocol_id": protocol_id,
+                "run_id": run_id,
+                "action_result": action_result
+            }
 
-        return {"message": "Files forwarded successfully", "results": results}
-
+    except aiohttp.ClientResponseError as e:
+        raise HTTPException(status_code=e.status, detail=str(e))
     except aiohttp.ClientError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
     finally:
-        for file in files:
-            await file.close()
+        await files.close()
