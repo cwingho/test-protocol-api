@@ -178,9 +178,30 @@ body {
     color: #09090b;
 }
 
-.alert {
+.alert,
+.alert.alert-dismissible {
     border-radius: 6px;
     border: 1px solid transparent;
+    position: fixed !important;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    min-width: 300px;
+    max-width: 90%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 !important;
+}
+
+.alert.show,
+.alert.fade.show {
+    display: block;
+    opacity: 1;
+}
+
+.alert:not(.show) {
+    display: none;
+    opacity: 0;
 }
 
 #responseArea::-webkit-scrollbar {
