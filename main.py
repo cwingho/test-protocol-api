@@ -124,3 +124,26 @@ async def upload_protocol(
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
     finally:
         await files.close()
+
+@app.post("/protocols/stop/{run_id}")
+async def stop_run(
+    run_id: str,
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Stop a running protocol."""
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/runs/{run_id}/actions",
+                json={"data": {"actionType": "stop"}}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {"message": "Run stopped successfully", "data": result}
+
+    except aiohttp.ClientResponseError as e:
+        raise HTTPException(status_code=e.status, detail=str(e))
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

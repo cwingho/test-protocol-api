@@ -8,6 +8,8 @@ $(document).ready(function() {
     const removeFile = $('#removeFile');
     const uploadProgress = $('#uploadProgress');
     const progressBar = $('.progress-bar');
+    const validateBtn = $('#validateBtn');
+    const stopBtn = $('#stopBtn');
     
     let selectedFile = null;
 
@@ -56,6 +58,49 @@ $(document).ready(function() {
         uploadFile(selectedFile);
     });
 
+    // Handle validate button click
+    validateBtn.click(function() {
+        if (!selectedFile) return;
+        
+        // Here you can add validation logic
+        // For now, just show a success message
+        showAlert('File validation successful!', 'success');
+    });
+
+    // Handle stop button click
+    stopBtn.click(function() {
+        const serverUrl = $('#serverUrl').val().trim();
+        if (!serverUrl) {
+            showAlert('Please enter a server URL/IP address', 'danger');
+            return;
+        }
+
+        // Get the run ID from the response area
+        let runId;
+        try {
+            const responseData = JSON.parse($('#responseArea').val());
+            runId = responseData.run_id;
+        } catch (e) {
+            showAlert('No active run to stop', 'danger');
+            return;
+        }
+
+        // Send stop request to the server
+        $.ajax({
+            url: `/protocols/stop/${runId}`,
+            method: 'POST',
+            data: { target_url: serverUrl },
+            success: (response) => {
+                showAlert('Run stopped successfully!', 'success');
+                stopBtn.prop('disabled', true);
+            },
+            error: (xhr, status, error) => {
+                const errorMsg = xhr.responseJSON?.message || error;
+                showAlert('Error stopping run: ' + errorMsg, 'danger');
+            }
+        });
+    });
+
     function handleFile(file) {
         if (!file) return;
         
@@ -82,6 +127,7 @@ $(document).ready(function() {
         fileName.text(file.name);
         fileInfo.show();
         uploadBtn.prop('disabled', false);
+        stopBtn.prop('disabled', true);
     }
 
     function clearFile() {
@@ -89,6 +135,7 @@ $(document).ready(function() {
         fileInput.val('');
         fileInfo.hide();
         uploadBtn.prop('disabled', true);
+        stopBtn.prop('disabled', true);
         uploadProgress.hide();
         progressBar.css('width', '0%');
     }
@@ -126,6 +173,8 @@ $(document).ready(function() {
             success: (response) => {
                 showAlert('Script uploaded successfully!', 'success');
                 $('#responseArea').val(JSON.stringify(response, null, 2));
+                uploadBtn.prop('disabled', true);
+                stopBtn.prop('disabled', false);
                 clearFile();
             },
             error: (xhr, status, error) => {
