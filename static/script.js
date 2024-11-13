@@ -135,7 +135,7 @@ $(document).ready(function() {
         fileInput.val('');
         fileInfo.hide();
         uploadBtn.prop('disabled', true);
-        stopBtn.prop('disabled', true);
+        // stopBtn.prop('disabled', true);
         uploadProgress.hide();
         progressBar.css('width', '0%');
     }
