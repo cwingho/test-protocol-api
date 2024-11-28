@@ -6,7 +6,6 @@ from typing import Dict, Any
 import aiohttp
 
 # Constants
-RUNS_SERVICE_URL = "http://172.20.17.50:41950/runs"
 ALLOWED_FILE_EXTENSION = ".py"
 PYTHON_MIME_TYPE = "application/x-python"
 
