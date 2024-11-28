@@ -49,6 +49,10 @@ async def create_protocol(
     async with session.post(f"{url}/protocols", data=data) as response:
         response.raise_for_status()
         result = await response.json()
+        
+        if result["success"] == False:
+            raise Exception(result["message"])
+        
         return result["data"]["id"]
 
 async def create_run(
@@ -63,6 +67,10 @@ async def create_run(
     ) as response:
         response.raise_for_status()
         result = await response.json()
+        
+        if result["success"] == False:
+            raise Exception(result["message"])
+        
         return result["data"]["id"]
 
 async def start_run(
@@ -77,6 +85,10 @@ async def start_run(
     ) as response:
         response.raise_for_status()
         result = await response.json()
+        
+        if result["success"] == False:
+            raise Exception(result["message"])
+        
         return result["message"]
 
 @app.post("/protocols")
@@ -118,9 +130,9 @@ async def upload_protocol(
     except aiohttp.ClientResponseError as e:
         raise HTTPException(status_code=e.status, detail=str(e))
     except aiohttp.ClientError as e:
-        raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"{str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
     finally:
         await files.close()
 
