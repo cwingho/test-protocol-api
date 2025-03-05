@@ -4,10 +4,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from typing import Dict, Any
 import aiohttp
+from pathlib import Path
 
 # Constants
-ALLOWED_FILE_EXTENSION = ".py"
-PYTHON_MIME_TYPE = "application/x-python"
+ALLOWED_FILE_EXTENSIONS = [".py", ".json"]
+MIME_TYPES = {
+    ".py": "application/x-python",
+    ".json": "application/json"
+}
 
 app = FastAPI()
 
@@ -28,12 +32,13 @@ async def read_root() -> FileResponse:
     """Serve the index.html file."""
     return FileResponse('index.html')
 
-async def validate_python_file(file: UploadFile) -> None:
-    """Validate if the uploaded file is a Python file."""
-    if not file.filename.lower().endswith(ALLOWED_FILE_EXTENSION):
+async def validate_file(file: UploadFile) -> None:
+    """Validate if the uploaded file has an allowed extension."""
+    file_ext = "".join(Path(file.filename).suffixes).lower()
+    if not any(file_ext.endswith(ext) for ext in ALLOWED_FILE_EXTENSIONS):
         raise HTTPException(
             status_code=400, 
-            detail=f"File {file.filename} is not a Python file"
+            detail=f"File {file.filename} must be a Python or JSON file"
         )
 
 async def create_protocol(
@@ -44,7 +49,10 @@ async def create_protocol(
 ) -> Dict[str, Any]:
     """Create a protocol by sending the file to the target service."""
     data = aiohttp.FormData()
-    data.add_field('files', content, filename=filename, content_type=PYTHON_MIME_TYPE)
+    file_ext = "".join(Path(filename).suffixes).lower()
+    mime_type = MIME_TYPES.get(file_ext, "application/octet-stream")
+    
+    data.add_field('files', content, filename=filename, content_type=mime_type)
     
     async with session.post(f"{url}/protocols", data=data) as response:
         response.raise_for_status()
@@ -100,15 +108,19 @@ async def upload_protocol(
     Handle protocol upload and run creation.
     
     Args:
-        files: The uploaded Python protocol file
+        files: The uploaded Python or JSON protocol file
         target_url: The target service URL
     
     Returns:
         Dict containing the protocol ID and run information
     """
     try:
-        await validate_python_file(files)
+        await validate_file(files)
         content = await files.read()
+        
+        # Add http:// prefix if not present
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
         
         async with aiohttp.ClientSession() as session:
             # Create protocol

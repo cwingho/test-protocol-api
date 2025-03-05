@@ -105,8 +105,8 @@ $(document).ready(function() {
         if (!file) return;
         
         // Validate file type
-        if (!file.name.toLowerCase().endsWith('.py')) {
-            showAlert('Please select a Python script file (.py)', 'danger');
+        if (!file.name.toLowerCase().endsWith('.py') && !file.name.toLowerCase().endsWith('.json')) {
+            showAlert('Please select a Python script (.py) or JSON (.json) file', 'danger');
             return;
         }
 

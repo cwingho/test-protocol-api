@@ -41,7 +41,7 @@
                                                class="form-control" 
                                                id="serverUrl" 
                                                placeholder="Enter server URL or IP address"
-                                               value="http://172.20.17.50:41950">
+                                               value="http://192.168.31.111:41950">
                                     </div>
                                 </div>
                                 
@@ -50,14 +50,14 @@
                                         <i class="fas fa-cloud-upload-alt"></i>
                                     </div>
                                     <div class="upload-text">
-                                        <h5 class="mb-1">Upload your Python script</h5>
+                                        <h5 class="mb-1">Upload your Python/JSON script</h5>
                                         <p class="text-muted mb-3">Drag and drop your file here or click to browse</p>
-                                        <p class="file-hint">Python files only (.py)</p>
+                                        <p class="file-hint">.py and .json only</p>
                                     </div>
                                     <button class="btn btn-outline" id="browseBtn">
                                         Choose file
                                     </button>
-                                    <input type="file" id="fileInput" accept=".py" single hidden>
+                                    <input type="file" id="fileInput" accept=".py,.json" single hidden>
                                 </div>
                                 
                                 <div class="file-info" id="fileInfo">
