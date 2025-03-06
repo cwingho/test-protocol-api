@@ -6,9 +6,6 @@ A web interface for uploading and executing protocol scripts (.py and .json file
 
 - Drag-and-drop file upload interface
 - Support for Python (.py) and JSON (.json) files
-- Real-time upload progress
-- Protocol execution control (Start/Stop)
-- API response display
 - Local deployment ready (no internet required)
 
 ## Requirements
