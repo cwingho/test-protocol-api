@@ -170,3 +170,46 @@ async def stop_run(
         raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/move-pipette")
+async def move_pipette(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Move pipette to slot 1."""
+    try:
+        # Add http:// prefix if not present
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            # Step 1: Move pipette 1 to z=0
+            async with session.post(
+                f"{target_url}/pipette/1/move-z/0",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                await response.json()
+
+            # Step 2: Move pipette 8 to z=0
+            async with session.post(
+                f"{target_url}/pipette/8/move-z/0",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                await response.json()
+
+            # Step 3: Move pipette 1 to final position
+            async with session.post(
+                f"{target_url}/pipette/1/move-xyz/0/0/0",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {"message": "Pipette movements completed successfully", "data": result}
+
+    except aiohttp.ClientResponseError as e:
+        raise HTTPException(status_code=e.status, detail=str(e))
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

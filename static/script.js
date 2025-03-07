@@ -101,6 +101,30 @@ $(document).ready(function() {
         });
     });
 
+    document.getElementById('movePipetteBtn').addEventListener('click', async function() {
+        const serverUrl = document.getElementById('serverUrl').value;
+        const responseArea = document.getElementById('responseArea');
+        
+        try {
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/move-pipette', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+            
+            // Show success message
+            showAlert('Pipette movement command sent successfully!', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Failed to move pipette: ' + error.message, 'danger');
+        }
+    });
+
     function handleFile(file) {
         if (!file) return;
         
