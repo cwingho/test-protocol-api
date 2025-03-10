@@ -197,10 +197,34 @@ async def move_pipette(
             ) as response:
                 response.raise_for_status()
                 await response.json()
-
-            # Step 3: Move pipette 1 to final position
+            
+            # Step 3: Move gripper to g=20
             async with session.post(
-                f"{target_url}/pipette/1/move-xyz/0/0/0",
+                f"{target_url}/pipette/8/move-g/20",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                await response.json()
+            
+            # Step 4: Move gripper to z=0
+            async with session.post(
+                f"{target_url}/pipette/8/move-z/0",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                await response.json()
+            
+            # Step 5: Move gripper to g=0
+            async with session.post(
+                f"{target_url}/pipette/8/move-g/0",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                await response.json()
+
+            # Step 6: Move pipette 8 to final position
+            async with session.post(
+                f"{target_url}/pipette/8/move-xyz/0/0/0",
                 json={}
             ) as response:
                 response.raise_for_status()
