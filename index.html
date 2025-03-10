@@ -82,11 +82,8 @@
                                     <button class="btn btn-success me-2 mb-2" id="stopBtn" disabled>
                                         <i class="fas fa-stop-circle me-2"></i>Stop Running
                                     </button>
-                                    <button class="btn btn-success me-2 mb-2" id="uploadBtn" disabled>
+                                    <button class="btn btn-success mb-2" id="uploadBtn" disabled>
                                         <i class="fas fa-paper-plane me-2"></i>Upload Script
-                                    </button>
-                                    <button class="btn btn-primary mb-2" id="movePipetteBtn">
-                                        <i class="fas fa-arrows-alt me-2"></i>Move Pipette to Slot 1
                                     </button>
                                 </div>
                             </div>
@@ -105,6 +102,25 @@
                             <div class="card-body p-4">
                                 <textarea id="responseArea" class="form-control h-100" readonly 
                                     placeholder="API response will appear here..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Pipette Control Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0 d-flex align-items-center">
+                                    <i class="fas fa-robot me-3"></i>
+                                    Pipette Control
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-primary" id="movePipetteBtn">
+                                    <i class="fas fa-arrows-alt me-2"></i>Move Pipette to Slot 1
+                                </button>
                             </div>
                         </div>
                     </div>
