@@ -176,64 +176,42 @@ async def move_pipette(
     target_url: str = Form(...)
 ) -> Dict[str, Any]:
     """Move pipette to slot 1."""
+    errors = []
     try:
-        # Add http:// prefix if not present
         if not target_url.startswith('http://'):
             target_url = f'http://{target_url}'
             
         async with aiohttp.ClientSession() as session:
-            # Step 1: Move pipette 1 to z=0
-            async with session.post(
-                f"{target_url}/pipette/1/move-z/0",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                await response.json()
+            # Define movement steps
+            steps = [
+                ("pipette/1/move-z/0", "Move pipette 1 to z=0"),
+                ("pipette/8/move-z/0", "Move pipette 8 to z=0"), 
+                ("pipette/8/move-g/20", "Move gripper to g=20"),
+                ("pipette/8/move-z/0", "Move gripper to z=0"),
+                ("pipette/8/move-g/0", "Move gripper to g=0"),
+                ("pipette/8/move-xyz/0/0/0", "Move pipette 8 to final position")
+            ]
 
-            # Step 2: Move pipette 8 to z=0
-            async with session.post(
-                f"{target_url}/pipette/8/move-z/0",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                await response.json()
-            
-            # Step 3: Move gripper to g=20
-            async with session.post(
-                f"{target_url}/pipette/8/move-g/20",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                await response.json()
-            
-            # Step 4: Move gripper to z=0
-            async with session.post(
-                f"{target_url}/pipette/8/move-z/0",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                await response.json()
-            
-            # Step 5: Move gripper to g=0
-            async with session.post(
-                f"{target_url}/pipette/8/move-g/0",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                await response.json()
+            result = None
+            for endpoint, description in steps:
+                try:
+                    async with session.post(
+                        f"{target_url}/{endpoint}",
+                        json={}
+                    ) as response:
+                        response.raise_for_status()
+                        result = await response.json()
+                except Exception as e:
+                    errors.append(f"{description} failed: {str(e)}")
 
-            # Step 6: Move pipette 8 to final position
-            async with session.post(
-                f"{target_url}/pipette/8/move-xyz/0/0/0",
-                json={}
-            ) as response:
-                response.raise_for_status()
-                result = await response.json()
-                return {"message": "Pipette movements completed successfully", "data": result}
+            response_message = "Pipette movements completed"
+            if errors:
+                response_message += f" with {len(errors)} errors"
+            return {
+                "message": response_message,
+                "data": result,
+                "errors": errors
+            }
 
-    except aiohttp.ClientResponseError as e:
-        raise HTTPException(status_code=e.status, detail=str(e))
-    except aiohttp.ClientError as e:
-        raise HTTPException(status_code=502, detail=f"Network error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
