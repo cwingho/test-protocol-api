@@ -6,12 +6,12 @@
     <title>Protocol Script Upload</title>
     
     <!-- CSS -->
-    <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/fontawesome/css/all.min.css" rel="stylesheet">
+    <link href="/static/bootstrap.min.css" rel="stylesheet" data-no-maps>
+    <link href="/static/fontawesome/css/all.min.css" rel="stylesheet" data-no-maps>
     <link href="/static/styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container-fluid py-5">
+    <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-md-11">
                 <div class="alert alert-dismissible fade mb-3" role="alert" id="alertBox">
@@ -19,9 +19,111 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 
+                <!-- Server URL Input Section -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0 d-flex align-items-center">
+                                    <i class="fas fa-server me-3"></i>
+                                    Server Connection
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="url-input-container mb-0">
+                                            <label for="serverUrl" class="form-label">Server URL/IP</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-link"></i>
+                                                </span>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       id="serverUrl" 
+                                                       placeholder="Enter server URL or IP address"
+                                                       value="192.168.31.31">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="url-input-container mb-0">
+                                            <label for="serverPort" class="form-label">Port</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-plug"></i>
+                                                </span>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       id="serverPort" 
+                                                       placeholder="Enter port number"
+                                                       value="41950">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pipette and Light Control Section -->
                 <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0 d-flex align-items-center">
+                                    <i class="fas fa-robot me-3"></i>
+                                    Pipette Control
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-success" id="movePipetteBtn">
+                                    <i class="fas fa-arrows-alt me-2"></i>Move Pipette to Slot 1
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0 d-flex align-items-center">
+                                    <i class="fas fa-lightbulb me-3"></i>
+                                    Light Control
+                                    <button class="btn btn-sm btn-outline-secondary ms-auto" id="refreshLightsBtn">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-column gap-3">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="lightingToggle">
+                                                <label class="form-check-label" for="lightingToggle">
+                                                    <i class="fas fa-sun me-2"></i>Lighting
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="uvToggle">
+                                                <label class="form-check-label" for="uvToggle">
+                                                    <i class="fas fa-radiation me-2"></i>Ultraviolet
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
                     <!-- Upload Card -->
-                    <div class="col-md-7">
+                    <div class="col-md-6">
                         <div class="card h-100">
                             <div class="card-header">
                                 <h4 class="mb-0 d-flex align-items-center">
@@ -31,20 +133,6 @@
                                 </h4>
                             </div>
                             <div class="card-body p-4">
-                                <div class="url-input-container mb-4">
-                                    <label for="serverUrl" class="form-label">Server URL/IP</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-link"></i>
-                                        </span>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="serverUrl" 
-                                               placeholder="Enter server URL or IP address"
-                                               value="http://192.168.31.111:41950">
-                                    </div>
-                                </div>
-                                
                                 <div class="drag-area" id="dropZone">
                                     <div class="upload-icon">
                                         <i class="fas fa-cloud-upload-alt"></i>
@@ -91,7 +179,7 @@
                     </div>
 
                     <!-- Response Display Area -->
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <div class="card h-100">
                             <div class="card-header">
                                 <h5 class="mb-0 d-flex align-items-center">
@@ -107,32 +195,15 @@
                     </div>
                 </div>
 
-                <!-- New Pipette Control Section -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="mb-0 d-flex align-items-center">
-                                    <i class="fas fa-robot me-3"></i>
-                                    Pipette Control
-                                </h4>
-                            </div>
-                            <div class="card-body">
-                                <button class="btn btn-primary" id="movePipetteBtn">
-                                    <i class="fas fa-arrows-alt me-2"></i>Move Pipette to Slot 1
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="/static/jquery.min.js"></script>
-    <script src="/static/popper.min.js"></script>
-    <script src="/static/bootstrap.min.js"></script>
+    <script src="/static/jquery.min.js" data-no-maps></script>
+    <script src="/static/popper.min.js" data-no-maps></script>
+    <script src="/static/bootstrap.min.js" data-no-maps></script>
     <script src="/static/script.js"></script>
 </body>
 </html>

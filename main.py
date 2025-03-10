@@ -215,3 +215,101 @@ async def move_pipette(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/light/{state}")
+async def control_light(
+    state: str,
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Control the lighting system."""
+    if state not in ['on', 'off']:
+        raise HTTPException(status_code=400, detail="Invalid state. Use 'on' or 'off'")
+    
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "type": "lighting",
+                "on": state == 'on'
+            }
+            
+            async with session.post(
+                f"{target_url}/system/lights",
+                json=payload,
+                headers={'Content-Type': 'application/json'}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": f"Light turned {state} successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/uv/{state}")
+async def control_uv(
+    state: str,
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Control the UV light system."""
+    if state not in ['on', 'off']:
+        raise HTTPException(status_code=400, detail="Invalid state. Use 'on' or 'off'")
+    
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "type": "ultraviolet",
+                "on": state == 'on'
+            }
+            
+            async with session.post(
+                f"{target_url}/system/lights",
+                json=payload,
+                headers={'Content-Type': 'application/json'}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": f"UV light turned {state} successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/lights/status")
+async def get_lights_status(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Get the current status of both lights."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{target_url}/system/lights",
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                
+                if not result.get("success", False):
+                    raise HTTPException(status_code=400, detail=result.get("message", "Unknown error"))
+                
+                return {
+                    "message": "Light status retrieved successfully",
+                    "data": {
+                        "lighting": result["data"]["lighting"],
+                        "ultraviolet": result["data"]["ultraviolet"]
+                    }
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
