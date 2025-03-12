@@ -16,6 +16,7 @@ $(document).ready(function() {
     const stopBtn = $('#stopBtn');
     
     let selectedFile = null;
+    let currentRunId = null;
 
     // Handle drag and drop events
     dropZone.on('dragover', function(e) {
@@ -79,24 +80,20 @@ $(document).ready(function() {
             return;
         }
 
-        // Get the run ID from the response area
-        let runId;
-        try {
-            const responseData = JSON.parse($('#responseArea').val());
-            runId = responseData.run_id;
-        } catch (e) {
+        if (!currentRunId) {
             showAlert('No active run to stop', 'danger');
             return;
         }
 
         // Send stop request to the server
         $.ajax({
-            url: `/protocols/stop/${runId}`,
+            url: `/protocols/stop/${currentRunId}`,
             method: 'POST',
             data: { target_url: serverUrl },
             success: (response) => {
                 showAlert('Run stopped successfully!', 'success');
                 stopBtn.prop('disabled', true);
+                currentRunId = null;
             },
             error: (xhr, status, error) => {
                 const errorMsg = xhr.responseJSON?.message || error;
@@ -313,6 +310,7 @@ $(document).ready(function() {
                 $('#responseArea').val(JSON.stringify(response, null, 2));
                 uploadBtn.prop('disabled', true);
                 stopBtn.prop('disabled', false);
+                currentRunId = response.run_id;
                 clearFile();
             },
             error: (xhr, status, error) => {

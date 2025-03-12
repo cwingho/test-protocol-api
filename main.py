@@ -155,6 +155,10 @@ async def stop_run(
 ) -> Dict[str, Any]:
     """Stop a running protocol."""
     try:
+        # Add http:// prefix if not present
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{target_url}/runs/{run_id}/actions",
