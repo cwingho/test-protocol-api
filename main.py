@@ -317,3 +317,23 @@ async def get_lights_status(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules")
+async def get_modules_status(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Get the status of all modules."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{target_url}/modules",
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

@@ -17,6 +17,7 @@ $(document).ready(function() {
     
     let selectedFile = null;
     let currentRunId = null;
+    let moduleUpdateInterval;
 
     // Handle drag and drop events
     dropZone.on('dragover', function(e) {
@@ -334,6 +335,125 @@ $(document).ready(function() {
         // Auto-hide after 5 seconds
         setTimeout(() => {
             alertBox.removeClass('show');
-        }, 5000);
+        }, 1000);
     }
+
+    function startModuleUpdates() {
+        // Clear any existing interval
+        if (moduleUpdateInterval) {
+            clearInterval(moduleUpdateInterval);
+        }
+
+        // Initial update
+        updateModuleStatus();
+
+        // Set up interval for updates every 5 seconds
+        moduleUpdateInterval = setInterval(updateModuleStatus, 2000);
+    }
+
+    function formatTemperature(temp) {
+        // return temp ? `${temp.toFixed(1)}°C` : 'N/A';
+        return `${temp.toFixed(1)}°C`
+    }
+
+    async function updateModuleStatus() {
+        const serverUrl = getServerAddress();
+        if (!serverUrl) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                updateModulesUI(result.data);
+                $('#moduleLastUpdate').text('Last updated: ' + new Date().toLocaleTimeString());
+            }
+        } catch (error) {
+            console.error('Error fetching module status:', error);
+        }
+    }
+
+    function updateModulesUI(modules) {
+        const container = $('#modulesContainer');
+        container.empty();
+
+        modules.forEach(module => {
+            const moduleHtml = createModuleCard(module);
+            container.append(moduleHtml);
+        });
+    }
+
+    function createModuleCard(module) {
+        const moduleIcons = {
+            magneticModuleType: 'magnet',
+            heaterShakerModuleType: 'temperature-high',
+            temperatureModuleType: 'thermometer-half',
+            thermocyclerModuleType: 'dna'
+        };
+
+        const icon = moduleIcons[module.moduleType] || 'cube';
+        const data = module.data;
+
+        let statusDetails = '';
+        
+        switch (module.moduleType) {
+            case 'magneticModuleType':
+                statusDetails = `
+                    <p class="mb-1"><strong>Status:</strong> ${data.status}</p>
+                    <p class="mb-1"><strong>Engaged:</strong> ${data.engaged}</p>
+                    <p class="mb-0"><strong>Height:</strong> ${data.height}</p>
+                `;
+                break;
+
+            case 'heaterShakerModuleType':
+                statusDetails = `
+                    <p class="mb-1"><strong>Status:</strong> ${data.status}</p>
+                    <p class="mb-1"><strong>Latch:</strong> ${data.labwareLatchStatus}</p>
+                    <p class="mb-1"><strong>Speed:</strong> ${data.currentSpeed} rpm (Target: ${data.targetSpeed} rpm)</p>
+                    <p class="mb-0"><strong>Temperature:</strong> ${formatTemperature(data.currentTemperature)} (Target: ${formatTemperature(data.targetTemperature)})</p>
+                `;
+                break;
+
+            case 'temperatureModuleType':
+                statusDetails = `
+                    <p class="mb-1"><strong>Status:</strong> ${data.status}</p>
+                    <p class="mb-0"><strong>Temperature:</strong> ${formatTemperature(data.currentTemperature)} (Target: ${formatTemperature(data.targetTemperature)})</p>
+                `;
+                break;
+
+            case 'thermocyclerModuleType':
+                statusDetails = `
+                    <p class="mb-1"><strong>Status:</strong> ${data.status}</p>
+                    <p class="mb-1"><strong>Temperature:</strong> ${formatTemperature(data.currentTemperature)} (Target: ${formatTemperature(data.targetTemperature)})</p>
+                    <p class="mb-1"><strong>Lid:</strong> ${data.lidStatus} (${formatTemperature(data.lidTemperature)})</p>
+                    <p class="mb-0"><strong>Progress:</strong> Cycle ${data.currentCycleIndex}/${data.totalCycleCount}, Step ${data.currentStepIndex}/${data.totalStepCount}</p>
+                `;
+                break;
+        }
+
+        return `
+            <div class="col-md-6 col-lg-3">
+                <div class="module-card card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-${icon} me-2"></i>
+                            ${module.moduleModel}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        ${statusDetails}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    startModuleUpdates();
 }); 

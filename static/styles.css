@@ -317,3 +317,34 @@ body {
 .form-check-label {
     font-size: 0.85rem;
 }
+
+.module-card {
+    transition: all 0.2s ease;
+}
+
+.module-card .card-header {
+    padding: 0.75rem 1rem;
+}
+
+.module-card .card-header h5 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #18181b;
+}
+
+.module-card .card-body {
+    padding: 1rem;
+    font-size: 0.8rem;
+}
+
+.module-card .card-body p {
+    color: #52525b;
+}
+
+.module-card .card-body strong {
+    color: #18181b;
+}
+
+#moduleLastUpdate {
+    font-size: 0.75rem;
+}
