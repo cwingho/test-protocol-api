@@ -148,10 +148,10 @@ async def upload_protocol(
     finally:
         await files.close()
 
-@app.post("/protocols/stop/{run_id}")
+@app.post("/protocols/stop")
 async def stop_run(
-    run_id: str,
-    target_url: str = Form(...)
+    target_url: str = Form(...),
+    run_id: str = Form(...)
 ) -> Dict[str, Any]:
     """Stop a running protocol."""
     try:
@@ -334,6 +334,116 @@ async def get_modules_status(
                 response.raise_for_status()
                 result = await response.json()
                 return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/temperature/deactivate")
+async def deactivate_temperature_module(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Deactivate the temperature module."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/temperatureModule/deactivate",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Temperature module deactivated successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/magnetic/disengage")
+async def disengage_magnetic_module(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Disengage the magnetic module."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/magneticModule/disengage",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Magnetic module disengaged successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/heater-shaker/deactivate")
+async def deactivate_heater(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Deactivate both the heater and shaker."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            
+            # Then deactivate shaker
+            async with session.post(
+                f"{target_url}/modules/heaterShaker/deactivateShaker",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                shaker_result = await response.json()
+                
+            # First deactivate heater
+            async with session.post(
+                f"{target_url}/modules/heaterShaker/deactivateHeater",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                heater_result = await response.json()
+
+            return {
+                "message": "Heater and shaker deactivated successfully",
+                "data": {
+                    "heater": heater_result,
+                    "shaker": shaker_result
+                }
+            }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/thermocycler/deactivate")
+async def deactivate_thermocycler(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Deactivate the thermocycler."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/thermocycler/deactivate",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Thermocycler deactivated successfully",
+                    "data": result
+                }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

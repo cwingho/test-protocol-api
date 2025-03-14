@@ -219,44 +219,6 @@ body {
     background: #71717a;
 }
 
-.alert {
-    border-radius: 6px;
-    border: 1px solid transparent;
-    position: fixed !important;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    min-width: 300px;
-    max-width: 90%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin: 0;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-}
-
-.alert.show {
-    display: block;
-    opacity: 1;
-}
-
-.alert:not(.show) {
-    display: none;
-    opacity: 0;
-}
-
-.alert-success {
-    background-color: #f0fdf4;
-    border-color: #bbf7d0;
-    color: #166534;
-}
-
-.alert-danger {
-    background-color: #fef2f2;
-    border-color: #fecaca;
-    color: #991b1b;
-}
-
 .container-fluid {
     max-width: 1400px;
     padding: 1rem;

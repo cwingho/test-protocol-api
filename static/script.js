@@ -36,7 +36,6 @@ $(document).ready(function() {
         
         const files = e.originalEvent.dataTransfer.files;
         if (files.length > 1) {
-            showAlert('Please drop only one Python file at a time', 'danger');
             return;
         }
         
@@ -70,35 +69,30 @@ $(document).ready(function() {
         
         // Here you can add validation logic
         // For now, just show a success message
-        showAlert('File validation successful!', 'success');
     });
 
     // Handle stop button click
     stopBtn.click(function() {
         const serverUrl = getServerAddress();
         if (!serverUrl) {
-            showAlert('Please enter a server URL/IP address', 'danger');
             return;
         }
 
         if (!currentRunId) {
-            showAlert('No active run to stop', 'danger');
             return;
         }
 
         // Send stop request to the server
         $.ajax({
-            url: `/protocols/stop/${currentRunId}`,
+            url: `/protocols/stop`,
             method: 'POST',
-            data: { target_url: serverUrl },
+            data: { target_url: serverUrl, run_id: currentRunId },
             success: (response) => {
-                showAlert('Run stopped successfully!', 'success');
                 stopBtn.prop('disabled', true);
                 currentRunId = null;
             },
             error: (xhr, status, error) => {
                 const errorMsg = xhr.responseJSON?.message || error;
-                showAlert('Error stopping run: ' + errorMsg, 'danger');
             }
         });
     });
@@ -118,12 +112,35 @@ $(document).ready(function() {
 
             const result = await response.json();
             responseArea.value = JSON.stringify(result, null, 2);
-            
-            // Show success message
-            showAlert('Pipette movement command sent successfully!', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Failed to move pipette: ' + error.message, 'danger');
+        }
+    });
+
+    document.getElementById('disengageTempBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            // Show loading state
+            button.prop('disabled', true);
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/temperature/deactivate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            // Reset button state
+            button.prop('disabled', false);
         }
     });
 
@@ -133,7 +150,6 @@ $(document).ready(function() {
         
         const serverUrl = getServerAddress();
         if (!serverUrl) {
-            showAlert('Please enter a server URL/IP address', 'danger');
             $(this).prop('checked', !$(this).prop('checked')); // Revert toggle
             return;
         }
@@ -150,10 +166,8 @@ $(document).ready(function() {
 
             const result = await response.json();
             $('#responseArea').val(JSON.stringify(result, null, 2));
-            showAlert(`Lighting turned ${isOn ? 'on' : 'off'} successfully!`, 'success');
         } catch (error) {
             console.error('Error:', error);
-            showAlert(`Failed to turn ${isOn ? 'on' : 'off'} lighting: ${error.message}`, 'danger');
             $(this).prop('checked', !isOn); // Revert toggle on error
         }
     });
@@ -164,7 +178,6 @@ $(document).ready(function() {
         
         const serverUrl = getServerAddress();
         if (!serverUrl) {
-            showAlert('Please enter a server URL/IP address', 'danger');
             $(this).prop('checked', !$(this).prop('checked')); // Revert toggle
             return;
         }
@@ -181,10 +194,8 @@ $(document).ready(function() {
 
             const result = await response.json();
             $('#responseArea').val(JSON.stringify(result, null, 2));
-            showAlert(`UV light turned ${isOn ? 'on' : 'off'} successfully!`, 'success');
         } catch (error) {
             console.error('Error:', error);
-            showAlert(`Failed to turn ${isOn ? 'on' : 'off'} UV light: ${error.message}`, 'danger');
             $(this).prop('checked', !isOn); // Revert toggle on error
         }
     });
@@ -196,7 +207,6 @@ $(document).ready(function() {
         const serverUrl = getServerAddress();
         
         if (!serverUrl) {
-            showAlert('Please enter a server URL/IP address', 'danger');
             return;
         }
 
@@ -220,14 +230,90 @@ $(document).ready(function() {
             $('#uvToggle').prop('checked', result.data.ultraviolet).trigger('change', [true]);
             
             $('#responseArea').val(JSON.stringify(result, null, 2));
-            showAlert('Light status refreshed successfully!', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showAlert('Failed to refresh light status: ' + error.message, 'danger');
         } finally {
             // Reset loading state
             button.prop('disabled', false);
             button.find('i').removeClass('fa-spin');
+        }
+    });
+
+    // Handle magnetic module disengagement
+    document.getElementById('disengageMagnetBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/magnetic/disengage', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            button.prop('disabled', false);
+        }
+    });
+
+    // Handle heater deactivation
+    document.getElementById('deactivateHeaterShakerBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/heater-shaker/deactivate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            button.prop('disabled', false);
+        }
+    });
+
+    // Handle thermocycler deactivation
+    document.getElementById('deactivateThermocyclerBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/thermocycler/deactivate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            button.prop('disabled', false);
         }
     });
 
@@ -236,19 +322,16 @@ $(document).ready(function() {
         
         // Validate file type
         if (!file.name.toLowerCase().endsWith('.py') && !file.name.toLowerCase().endsWith('.json')) {
-            showAlert('Please select a Python script (.py) or JSON (.json) file', 'danger');
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            showAlert('File size should not exceed 5MB', 'danger');
             return;
         }
 
         // Check if multiple files were dropped
         if (fileInput[0].files.length > 1) {
-            showAlert('Please upload only one Python file at a time', 'danger');
             clearFile();
             return;
         }
@@ -265,7 +348,6 @@ $(document).ready(function() {
         fileInput.val('');
         fileInfo.hide();
         uploadBtn.prop('disabled', true);
-        // stopBtn.prop('disabled', true);
         uploadProgress.hide();
         progressBar.css('width', '0%');
     }
@@ -279,7 +361,6 @@ $(document).ready(function() {
     function uploadFile(file) {
         const serverUrl = getServerAddress();
         if (!serverUrl) {
-            showAlert('Please enter a server URL/IP address', 'danger');
             return;
         }
 
@@ -307,7 +388,6 @@ $(document).ready(function() {
                 return xhr;
             },
             success: (response) => {
-                showAlert('Script uploaded successfully!', 'success');
                 $('#responseArea').val(JSON.stringify(response, null, 2));
                 uploadBtn.prop('disabled', true);
                 stopBtn.prop('disabled', false);
@@ -316,26 +396,11 @@ $(document).ready(function() {
             },
             error: (xhr, status, error) => {
                 const errorMsg = xhr.responseJSON?.message || error;
-                showAlert('Error uploading script: ' + errorMsg, 'danger');
                 $('#responseArea').val(xhr.responseJSON ? JSON.stringify(xhr.responseJSON, null, 2) : '');
                 uploadBtn.prop('disabled', false);
                 uploadProgress.hide();
             }
         });
-    }
-
-    function showAlert(message, type) {
-        const alertBox = $('#alertBox');
-        const alertMessage = $('#alertMessage');
-        
-        alertBox.removeClass('alert-success alert-danger')
-               .addClass('alert-' + type + ' show');
-        alertMessage.text(message);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            alertBox.removeClass('show');
-        }, 1000);
     }
 
     function startModuleUpdates() {
@@ -348,7 +413,7 @@ $(document).ready(function() {
         updateModuleStatus();
 
         // Set up interval for updates every 5 seconds
-        moduleUpdateInterval = setInterval(updateModuleStatus, 2000);
+        moduleUpdateInterval = setInterval(updateModuleStatus, 5000);
     }
 
     function formatTemperature(temp) {
