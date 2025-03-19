@@ -200,6 +200,34 @@ $(document).ready(function() {
         }
     });
 
+    // Handle UV toggle
+    $('#fanToggle').change(async function(event, skipRequest) {
+        if (skipRequest) return; // Skip API call if we're just updating the UI
+        
+        const serverUrl = getServerAddress();
+        if (!serverUrl) {
+            $(this).prop('checked', !$(this).prop('checked')); // Revert toggle
+            return;
+        }
+
+        const isOn = $(this).prop('checked');
+        try {
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch(`/fan/${isOn ? 'on' : 'off'}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            $('#responseArea').val(JSON.stringify(result, null, 2));
+        } catch (error) {
+            console.error('Error:', error);
+            $(this).prop('checked', !isOn); // Revert toggle on error
+        }
+    });
+
     // Handle refresh lights button
     refreshBtn.click(async function() {
         console.log('Refresh button clicked');
@@ -228,7 +256,7 @@ $(document).ready(function() {
             // Update toggle states without triggering their change events
             $('#lightingToggle').prop('checked', result.data.lighting).trigger('change', [true]);
             $('#uvToggle').prop('checked', result.data.ultraviolet).trigger('change', [true]);
-            
+            $('#fanToggle').prop('checked', result.data.ffu).trigger('change', [true]);
             $('#responseArea').val(JSON.stringify(result, null, 2));
         } catch (error) {
             console.error('Error:', error);

@@ -287,6 +287,40 @@ async def control_uv(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+    
+@app.post("/fan/{state}")
+async def control_fan(
+    state: str,
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Control the hepa filter."""
+    if state not in ['on', 'off']:
+        raise HTTPException(status_code=400, detail="Invalid state. Use 'on' or 'off'")
+    
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "type": "ffu",
+                "on": state == 'on'
+            }
+            
+            async with session.post(
+                f"{target_url}/system/lights",
+                json=payload,
+                headers={'Content-Type': 'application/json'}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": f"Fan turned {state} successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 @app.post("/lights/status")
 async def get_lights_status(
@@ -311,7 +345,8 @@ async def get_lights_status(
                     "message": "Light status retrieved successfully",
                     "data": {
                         "lighting": result["data"]["lighting"],
-                        "ultraviolet": result["data"]["ultraviolet"]
+                        "ultraviolet": result["data"]["ultraviolet"],
+                        "ffu": result["data"]["ffu"]
                     }
                 }
 
