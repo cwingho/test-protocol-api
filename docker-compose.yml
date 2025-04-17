@@ -11,9 +11,9 @@ services:
     environment:
       - PYTHONPATH=/app
     restart: unless-stopped
-    networks:
-      - docker-net1
+#     networks:
+#       - docker-net1
 
-networks:
-  docker-net1:
-    external: true
+# networks:
+#   docker-net1:
+#     external: true
