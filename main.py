@@ -482,3 +482,27 @@ async def deactivate_thermocycler(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/init")
+async def init_machine(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Initialize the machine."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/system/init",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Machine initialized successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

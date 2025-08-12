@@ -97,6 +97,36 @@ $(document).ready(function() {
         });
     });
 
+    document.getElementById('initBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            // Show loading state
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Initializing...');
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/init', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            responseArea.value = JSON.stringify({ error: error.message }, null, 2);
+        } finally {
+            // Reset button state
+            button.prop('disabled', false);
+            button.html('<i class="fas fa-power-off me-2"></i>Initialize Machine');
+        }
+    });
+
     document.getElementById('movePipetteBtn').addEventListener('click', async function() {
         const serverUrl = getServerAddress();
         const responseArea = document.getElementById('responseArea');
