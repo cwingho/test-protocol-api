@@ -375,6 +375,122 @@ $(document).ready(function() {
         }
     });
 
+    // Handle HeaterShaker open latch
+    document.getElementById('openLatchBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Opening...');
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/heater-shaker/open-latch', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            responseArea.value = JSON.stringify({ error: error.message }, null, 2);
+        } finally {
+            button.prop('disabled', false);
+            button.html('<i class="fas fa-unlock me-2"></i>HeaterShaker Open Latch');
+        }
+    });
+
+    // Handle HeaterShaker close latch
+    document.getElementById('closeLatchBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Closing...');
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/heater-shaker/close-latch', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            responseArea.value = JSON.stringify({ error: error.message }, null, 2);
+        } finally {
+            button.prop('disabled', false);
+            button.html('<i class="fas fa-lock me-2"></i>HeaterShaker Close Latch');
+        }
+    });
+
+    // Handle Thermocycler open lid
+    document.getElementById('openThermocyclerLidBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Opening...');
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/thermocycler/open-lid', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            responseArea.value = JSON.stringify({ error: error.message }, null, 2);
+        } finally {
+            button.prop('disabled', false);
+            button.html('<i class="fas fa-folder-open me-2"></i>Thermocycler Open Lid');
+        }
+    });
+
+    // Handle Thermocycler close lid
+    document.getElementById('closeThermocyclerLidBtn').addEventListener('click', async function() {
+        const serverUrl = getServerAddress();
+        const responseArea = document.getElementById('responseArea');
+        const button = $(this);
+        
+        try {
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Closing...');
+            
+            const formData = new FormData();
+            formData.append('target_url', serverUrl);
+
+            const response = await fetch('/modules/thermocycler/close-lid', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            responseArea.value = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            responseArea.value = JSON.stringify({ error: error.message }, null, 2);
+        } finally {
+            button.prop('disabled', false);
+            button.html('<i class="fas fa-folder me-2"></i>Thermocycler Close Lid');
+        }
+    });
+
     function handleFile(file) {
         if (!file) return;
         

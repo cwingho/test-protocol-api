@@ -483,6 +483,102 @@ async def deactivate_thermocycler(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
+@app.post("/modules/thermocycler/open-lid")
+async def open_thermocycler_lid(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Open the Thermocycler lid."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/thermocycler/openLid",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Thermocycler lid opened successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/thermocycler/close-lid")
+async def close_thermocycler_lid(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Close the Thermocycler lid."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/thermocycler/closeLid",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "Thermocycler lid closed successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/heater-shaker/open-latch")
+async def open_heater_shaker_latch(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Open the HeaterShaker labware latch."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/heaterShaker/openLabwareLatch",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "HeaterShaker latch opened successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+@app.post("/modules/heater-shaker/close-latch")
+async def close_heater_shaker_latch(
+    target_url: str = Form(...)
+) -> Dict[str, Any]:
+    """Close the HeaterShaker labware latch."""
+    try:
+        if not target_url.startswith('http://'):
+            target_url = f'http://{target_url}'
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{target_url}/modules/heaterShaker/closeLabwareLatch",
+                json={}
+            ) as response:
+                response.raise_for_status()
+                result = await response.json()
+                return {
+                    "message": "HeaterShaker latch closed successfully",
+                    "data": result
+                }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
 @app.post("/init")
 async def init_machine(
     target_url: str = Form(...)
